@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keyholder Management Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar" style="display: flex; visibility: visible; opacity: 1;">
+        <div class="sidebar-header">
+            <h1>Keyholder</h1>
+        </div>
+        <div class="sidebar-nav" id="sidebarNav">
+            <!-- Static fallback menu items (will be replaced by JS) -->
+            <div class="menu-item active" data-id="analytics">
+                <span class="icon">📊</span>
+                <span>Analytics</span>
+            </div>
+            <div class="menu-item" data-id="data_management">
+                <span class="icon">📁</span>
+                <span>Data Management</span>
+            </div>
+            <div class="menu-item" data-id="cms">
+                <span class="icon">📝</span>
+                <span>CMS</span>
+            </div>
+            <div class="menu-item" data-id="key_manager">
+                <span class="icon">🔑</span>
+                <span>Key Manager</span>
+            </div>
+            <div class="menu-item" data-id="ai_manager">
+                <span class="icon">🤖</span>
+                <span>AI Manager</span>
+            </div>
+            <div class="menu-item" data-id="image_gen">
+                <span class="icon">🖼️</span>
+                <span>Image Generation Manager</span>
+            </div>
+            <div class="menu-item" data-id="mcp">
+                <span class="icon">⚙️</span>
+                <span>MCP</span>
+            </div>
+            <div class="menu-item" data-id="data_generator">
+                <span class="icon">⚡</span>
+                <span>Data Generator</span>
+            </div>
+            <div class="menu-item" data-id="ai_coding_agent">
+                <span class="icon">🤖</span>
+                <span>AI Coding Agent</span>
+            </div>
+        </div>
+        <button class="add-menu-btn" onclick="openAddMenuModal()">
+            <span>➕</span>
+            <span>Add New Menu Item</span>
+        </button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="content-header">
+            <h2 id="contentTitle">Analytics</h2>
+            <div class="header-right">
+                <button class="toggle-components-btn" id="toggleComponentsBtn" onclick="toggleComponentLibrary()">
+                    <span>📦</span>
+                    <span>Components</span>
+                </button>
+                <button class="toggle-edit-btn" id="toggleEditBtn" onclick="toggleEditMode()">
+                    <span>✏️</span>
+                    <span id="editBtnText">Edit Mode</span>
+                </button>
+            </div>
+        </div>
+        <div class="content-area" id="contentArea" style="display: block; visibility: visible; background-color: #0a0a0a; color: #FFFFFF; min-height: 100vh;">
+            <!-- Content will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Component Library Sidebar -->
+    <div class="component-library" id="componentLibrary">
+        <div class="library-header">
+            <h3>Component Library</h3>
+            <button class="close-btn" onclick="toggleComponentLibrary()">✕</button>
+        </div>
+        <div class="library-content" id="libraryContent">
+            <!-- Component categories will be dynamically added -->
+        </div>
+    </div>
+
+    <!-- UIverse Integration Modal -->
+    <div class="modal" id="uiverseModal">
+        <div class="modal-content" style="max-width: 1200px; max-height: 90vh;">
+            <div class="modal-header">
+                <h3>🌐 Browse UIverse.io Components</h3>
+                <button class="close-btn" onclick="closeUIverseModal()">✕</button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                    <input type="search" id="uiverseSearch" class="form-input" placeholder="Search components..." style="margin-bottom: 12px;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn btn-sm btn-secondary" onclick="filterUIverse('all')">All</button>
+                        <button class="btn btn-sm btn-secondary" onclick="filterUIverse('buttons')">Buttons</button>
+                        <button class="btn btn-sm btn-secondary" onclick="filterUIverse('cards')">Cards</button>
+                        <button class="btn btn-sm btn-secondary" onclick="filterUIverse('inputs')">Inputs</button>
+                        <button class="btn btn-sm btn-secondary" onclick="filterUIverse('loaders')">Loaders</button>
+                    </div>
+                </div>
+                <div id="uiverseGrid" style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; max-height: 500px; overflow-y: auto;">
+                    <!-- UIverse components will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Code Editor Modal -->
+    <div class="modal" id="customCodeModal">
+        <div class="modal-content" style="max-width: 1400px; max-height: 90vh;">
+            <div class="modal-header">
+                <h3>💻 Custom Code Component</h3>
+                <button class="close-btn" onclick="closeCustomCodeModal()">✕</button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div style="display: grid; grid-template-columns: 1fr 400px; height: 600px;">
+                    <div style="display: flex; flex-direction: column; border-right: 1px solid var(--border);">
+                        <div style="padding: 12px; border-bottom: 1px solid var(--border); display: flex; gap: 8px;">
+                            <button class="btn btn-sm btn-secondary" onclick="switchCodeTab('html')">HTML</button>
+                            <button class="btn btn-sm btn-secondary" onclick="switchCodeTab('css')">CSS</button>
+                            <button class="btn btn-sm btn-secondary" onclick="switchCodeTab('js')">JavaScript</button>
+                        </div>
+                        <textarea id="customCodeEditor" style="flex: 1; padding: 16px; background: #1e1e1e; color: #d4d4d4; border: none; font-family: 'Consolas', monospace; font-size: 13px; resize: none;" placeholder="Write your code here..."></textarea>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <div style="padding: 16px; border-bottom: 1px solid var(--border);">
+                            <h4 style="margin: 0 0 12px 0; font-size: 14px;">👁️ Live Preview</h4>
+                        </div>
+                        <div id="customCodePreview" style="flex: 1; padding: 16px; overflow: auto; background: var(--bg-tertiary);"></div>
+                        <div style="padding: 16px; border-top: 1px solid var(--border);">
+                            <button class="btn btn-primary btn-full" onclick="saveCustomCode()">💾 Save Component</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customization Panel -->
+    <div class="customization-panel" id="customizationPanel">
+        <div class="panel-header">
+            <h3>Customize Component</h3>
+            <button class="close-btn" onclick="closeCustomizationPanel()">✕</button>
+        </div>
+        <div class="panel-content" id="panelContent">
+            <!-- Customization options will be dynamically added -->
+        </div>
+    </div>
+
+    <!-- Add Menu Modal -->
+    <div class="modal" id="addMenuModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Menu Item</h3>
+                <button class="close-btn" onclick="closeAddMenuModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="menuLabel">Label</label>
+                    <input type="text" id="menuLabel" placeholder="Enter menu label">
+                </div>
+                <div class="form-group">
+                    <label for="menuIcon">Icon (emoji)</label>
+                    <input type="text" id="menuIcon" placeholder="📄" maxlength="2">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeAddMenuModal()">Cancel</button>
+                <button class="btn-primary" onclick="addNewMenuItem()">Add Menu Item</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
