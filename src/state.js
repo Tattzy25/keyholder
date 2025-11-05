@@ -95,6 +95,11 @@ export function initializeDefaultViews() {
         data_generator: [
             { id: 'comp_25', type: 'card', x: 0, y: 0, width: 1200, height: 600, content: { title: 'Data Generator', text: 'Generate custom data sets with headers and rows.' }, size: 'large', variant: 'primary' }
         ],
-        ai_coding_agent: []
+        ai_coding_agent: [],
+        chatbot: [
+            { id: 'chat_intro', type: 'card', x: 0, y: 0, width: 900, height: 140, content: { title: 'Chatbot', text: 'Start a conversation with the in-house coding assistant.' }, size: 'medium', variant: 'primary' },
+            { id: 'chat_input', type: 'input', x: 0, y: 160, width: 700, height: 50, content: { label: 'Message', placeholder: 'Type your request (e.g., “add a stat card to Analytics”).' }, size: 'medium', variant: 'primary', inputType: 'text' },
+            { id: 'chat_send', type: 'button', x: 720, y: 160, width: 180, height: 50, content: { text: 'Send' }, size: 'medium', variant: 'primary' }
+        ]
     };
 }

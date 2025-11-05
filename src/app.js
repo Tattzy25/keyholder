@@ -198,7 +198,13 @@ function initializeDefaultViews() {
         data_generator: [
             { id: 'comp_25', type: 'card', x: 0, y: 0, width: 1200, height: 600, content: { title: 'Data Generator', text: 'Generate custom data sets with headers and rows.' }, size: 'large', variant: 'primary' }
         ],
-        ai_coding_agent: []
+        ai_coding_agent: [],
+        chatbot: [
+            { id: 'chat_intro', type: 'card', x: 0, y: 0, width: 900, height: 100, content: { title: 'Chatbot', text: 'Chat with the in-house assistant. Use Enter to send.' }, size: 'medium', variant: 'primary' },
+            { id: 'chat_log', type: 'custom_code', x: 0, y: 110, width: 900, height: 420, content: { html: '<div id="chat_log" class="chat-log"></div>' }, size: 'large', variant: 'primary' },
+            { id: 'chat_input', type: 'input', x: 0, y: 540, width: 700, height: 50, content: { label: 'Message', placeholder: 'e.g., add stat card to Analytics' }, size: 'medium', variant: 'primary', inputType: 'text' },
+            { id: 'chat_send', type: 'button', x: 720, y: 540, width: 180, height: 50, content: { text: 'Send' }, size: 'medium', variant: 'primary' }
+        ]
     };
 }
 
@@ -501,14 +507,14 @@ function renderComponent(comp) {
             </div>`;
         
         case 'button':
-            return `<div class="component component-button" style="${style}">
-                <button class="btn btn-${comp.variant} btn-${comp.size}">${comp.content.text}</button>
+            return `<div class="component component-button" style="${style}" ${comp.id ? `data-id="${comp.id}"` : ''}>
+                <button class="btn btn-${comp.variant} btn-${comp.size}" ${comp.id === 'chat_send' ? 'id="chat_send_btn" onclick="handleChatSend()"' : ''}>${comp.content.text}</button>
             </div>`;
         
         case 'input':
-            return `<div class="component component-input" style="${style}">
+            return `<div class="component component-input" style="${style}" ${comp.id ? `data-id="${comp.id}"` : ''}>
                 <label class="input-label">${comp.content.label}</label>
-                <input type="${comp.inputType}" class="form-input input-${comp.size}" placeholder="${comp.content.placeholder}">
+                <input type="${comp.inputType}" class="form-input input-${comp.size}" placeholder="${comp.content.placeholder}" ${comp.id === 'chat_input' ? 'id="chat_input_field" onkeydown="if(event.key==='Enter'){handleChatSend()}"' : ''}>
             </div>`;
         
         case 'textarea':
@@ -842,6 +848,110 @@ function addComponent(type, variant, x, y, inputType, chartType) {
     
     state.views[state.currentView].push(newComponent);
     renderContentArea();
+}
+
+// Add component to a specific view (used by Chatbot)
+function addComponentToView(viewId, type) {
+    const newComponent = {
+        id: `comp_${Date.now()}`,
+        type,
+        x: 0,
+        y: (state.views[viewId]?.length || 0) * 70,
+        width: getDefaultWidth(type),
+        height: getDefaultHeight(type),
+        content: getDefaultContent(type),
+        size: 'medium',
+        variant: 'primary',
+        inputType: 'text',
+        chartType: 'line'
+    };
+    state.views[viewId] = state.views[viewId] || [];
+    state.views[viewId].push(newComponent);
+}
+
+// Resolve a view id by label or id
+function resolveViewId(nameOrId) {
+    if (!nameOrId) return state.currentView;
+    const needle = String(nameOrId).trim().toLowerCase();
+    const direct = state.menuItems.find(m => m.id.toLowerCase() === needle);
+    if (direct) return direct.id;
+    const byLabel = state.menuItems.find(m => m.label.trim().toLowerCase() === needle);
+    return byLabel ? byLabel.id : state.currentView;
+}
+
+// Simple Chatbot handler: parse commands and update UI
+function handleChatSend() {
+    const inputEl = document.getElementById('chat_input_field');
+    const logEl = document.getElementById('chat_log');
+    const msg = (inputEl?.value || '').trim();
+    if (!msg) return;
+    appendChatMessage('you', msg);
+
+    // Parse command
+    const addMatch = msg.match(/add\s+([a-z\s_-]+?)(?:\s+to\s+([a-z\s_-]+))?$/i);
+    const switchMatch = msg.match(/switch\s+to\s+([a-z\s_-]+)/i);
+    const createMenuMatch = msg.match(/create\s+menu\s+([a-z\s_-]+)/i);
+    const componentPhrase = addMatch?.[1]?.trim().toLowerCase();
+    const targetPhrase = addMatch?.[2]?.trim();
+
+    const typeMap = {
+        'stat card': 'stat_card',
+        'card': 'card',
+        'chart': 'chart',
+        'table': 'table',
+        'input': 'input',
+        'button': 'button',
+        'alert': 'alert',
+        'progress': 'progress',
+        'gallery': 'gallery',
+        'list': 'list'
+    };
+
+    let compType = typeMap[componentPhrase] || null;
+    if (!compType && componentPhrase) {
+        // Try simple normalization: remove spaces and compare
+        const normalized = componentPhrase.replace(/\s+/g, '_');
+        compType = typeMap[componentPhrase] || normalized;
+    }
+
+    const viewId = resolveViewId(targetPhrase);
+    let response = '';
+    if (compType) {
+        addComponentToView(viewId, compType);
+        response = `Added ${compType} to ${viewId}.`;
+        switchView(viewId);
+    } else if (switchMatch) {
+        const target = resolveViewId(switchMatch[1]);
+        switchView(target);
+        response = `Switched to ${target}.`;
+    } else if (createMenuMatch) {
+        const label = createMenuMatch[1].trim();
+        const newId = label.toLowerCase().replace(/\s+/g, '_');
+        if (!state.menuItems.find(m => m.id === newId)) {
+            state.menuItems.push({ id: newId, label: label, icon: '📁' });
+            state.views[newId] = [];
+            renderSidebar();
+            switchView(newId);
+            response = `Created menu "${label}" and opened it.`;
+        } else {
+            response = `Menu "${label}" already exists.`;
+        }
+    } else {
+        response = 'Try: "add stat card to Analytics", "switch to CMS", or "create menu Reports".';
+    }
+
+    appendChatMessage('bot', response);
+    if (inputEl) inputEl.value = '';
+}
+
+function appendChatMessage(sender, text) {
+    const logEl = document.getElementById('chat_log');
+    if (!logEl) return;
+    const wrap = document.createElement('div');
+    wrap.className = `chat-bubble ${sender === 'you' ? 'user' : 'bot'}`;
+    wrap.textContent = text;
+    logEl.appendChild(wrap);
+    logEl.scrollTop = logEl.scrollHeight;
 }
 
 // Get default dimensions
